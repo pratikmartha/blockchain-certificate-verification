@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Institution Sign In - CertChain{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xl mx-auto mb-3 border border-indigo-500/30">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-white">Institution Portal</h2>
+            <p class="text-xs text-slate-400 mt-1">Sign in to issue and manage blockchain certificates</p>
+        </div>
+
+        <form action="{{ url_for('login') }}" method="POST" class="space-y-5">
+            <div>
+                <label for="username" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                    Username
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-sm">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <input type="text" id="username" name="username" required value="admin"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                    Password
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-sm">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <input type="password" id="password" name="password" required value="admin123"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+            </div>
+
+            <!-- Demo Hint Notice -->
+            <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl text-xs text-indigo-300 flex items-center space-x-2">
+                <i class="fa-solid fa-circle-info text-indigo-400 shrink-0"></i>
+                <span>Demo credentials: <strong class="text-white">admin</strong> / <strong class="text-white">admin123</strong></span>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition flex items-center justify-center">
+                <span>Sign In to Portal</span>
+                <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+            </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-slate-800 text-center text-xs text-slate-400">
+            Need to register your university or organization?
+            <a href="{{ url_for('register') }}" class="text-indigo-400 font-semibold hover:underline block mt-1">Register Institution Account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

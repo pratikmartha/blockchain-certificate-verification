@@ -1,0 +1,56 @@
+/* Custom Certificate Styles and Animations */
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Certificate Styling */
+.font-cert {
+    font-family: 'Cinzel', serif;
+}
+
+/* Glow effects */
+.glow-effect {
+    box-shadow: 0 0 50px -10px rgba(99, 102, 241, 0.3);
+}
+
+/* Subtle border animation */
+@keyframes border-pulse {
+    0%, 100% {
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+    50% {
+        border-color: rgba(168, 85, 247, 0.6);
+    }
+}
+
+.animate-border-pulse {
+    animation: border-pulse 3s infinite;
+}
+
+/* Print Optimization */
+@media print {
+    @page {
+        size: landscape;
+        margin: 1cm;
+    }
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+}

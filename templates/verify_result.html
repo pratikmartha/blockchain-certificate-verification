@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Result - {{ cert_id }} - CertChain{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb / Back Link -->
+    <div class="mb-6">
+        <a href="{{ url_for('verify') }}" class="text-xs font-semibold text-slate-400 hover:text-white transition flex items-center">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Verification Search
+        </a>
+    </div>
+
+    {% if is_valid %}
+    <!-- AUTHENTIC CERTIFICATE STATUS -->
+    <div class="bg-slate-900/80 border border-emerald-500/40 rounded-3xl p-6 sm:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+        <!-- Top Green Accent Glow -->
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Status Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
+                        <span>Authentic Record</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white">Cryptographically Verified</h2>
+                    <p class="text-xs text-slate-400">Recorded permanently on Ethereum Blockchain (Solidity Smart Contract)</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('view_certificate', cert_id=cert_id) }}" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition flex items-center">
+                    <i class="fa-solid fa-file-lines mr-1.5"></i> View Official Cert
+                </a>
+            </div>
+        </div>
+
+        <!-- Student & Qualification Details Grid -->
+        <div class="py-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Recipient / Student</span>
+                <p class="text-lg font-bold text-white">{{ on_chain.student_name }}</p>
+                {% if db_cert and db_cert.student_email %}
+                <p class="text-xs text-slate-500">{{ db_cert.student_email }}</p>
+                {% endif %}
+            </div>
+
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Qualification / Course</span>
+                <p class="text-lg font-bold text-indigo-300">{{ on_chain.course }}</p>
+            </div>
+
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Issuing Institution</span>
+                <p class="text-base font-semibold text-slate-200">{{ on_chain.institution }}</p>
+            </div>
+
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Issue Date</span>
+                <p class="text-base font-semibold text-slate-200">
+                    {% if db_cert %}
+                        {{ db_cert.issue_date }}
+                    {% else %}
+                        Blockchain Timestamp: {{ on_chain.issue_date }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Blockchain Proof Card -->
+        <div class="mt-4 bg-slate-950 border border-slate-800 rounded-2xl p-6 font-mono text-xs space-y-4">
+            <div class="flex items-center justify-between text-slate-400 font-sans border-b border-slate-800 pb-3">
+                <span class="font-bold uppercase tracking-wider text-[11px] text-indigo-400 flex items-center">
+                    <i class="fa-solid fa-cube mr-2"></i> On-Chain Cryptographic Proof
+                </span>
+                <span class="text-emerald-400 text-xs font-semibold">100% Immutable</span>
+            </div>
+
+            <div>
+                <div class="text-slate-500 mb-1">Unique Certificate Identifier:</div>
+                <div class="text-white font-bold select-all bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+                    <span>{{ cert_id }}</span>
+                    <button onclick="navigator.clipboard.writeText('{{ cert_id }}'); alert('Certificate ID copied!')" class="text-slate-400 hover:text-white transition">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <div class="text-slate-500 mb-1">SHA-256 Digest (On-Chain):</div>
+                <div class="text-emerald-400 break-all select-all bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    {{ on_chain.certificate_hash }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div>
+                    <div class="text-slate-500 mb-1">Smart Contract Address:</div>
+                    <div class="text-indigo-300 break-all select-all bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                        {{ on_chain.contract_address }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-slate-500 mb-1">Ethereum Transaction Hash:</div>
+                    <div class="text-slate-300 break-all select-all bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                        {% if db_cert and db_cert.tx_hash %}
+                            {{ db_cert.tx_hash }}
+                        {% else %}
+                            Confirmed in Block
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demonstration Action -->
+        <div class="mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+            <span class="text-slate-400">Want to test what happens if this certificate data is tampered with?</span>
+            <a href="{{ url_for('tamper_demo') }}" class="text-amber-400 hover:text-amber-300 font-semibold flex items-center">
+                <i class="fa-solid fa-flask mr-1.5"></i> Test in Tamper Lab
+            </a>
+        </div>
+    </div>
+
+    {% elif tampered %}
+    <!-- TAMPERED CERTIFICATE ALERT -->
+    <div class="bg-rose-950/40 border border-rose-500/50 rounded-3xl p-6 sm:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+        <div class="flex items-center space-x-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-rose-500/20 border border-rose-500/50 text-rose-400 flex items-center justify-center text-3xl shrink-0">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold uppercase tracking-wider mb-1">
+                    <span>Tamper Detected</span>
+                </div>
+                <h2 class="text-2xl font-extrabold text-white">Cryptographic Hash Mismatch!</h2>
+                <p class="text-xs text-rose-200">The digital fingerprint does not match the Ethereum smart contract ledger.</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-950/80 border border-rose-900/60 rounded-2xl p-6 text-sm text-slate-300 space-y-4">
+            <p>
+                <strong>Security Alert:</strong> A certificate exists under ID <code class="font-mono text-rose-300">{{ cert_id }}</code>, but the certificate content or attributes have been altered since it was issued by the institution.
+            </p>
+            <div class="font-mono text-xs space-y-2">
+                <div>
+                    <span class="text-slate-500">Immutable Hash on Blockchain:</span>
+                    <div class="text-emerald-400 break-all bg-slate-900 p-2 rounded">{{ on_chain.certificate_hash }}</div>
+                </div>
+                <div>
+                    <span class="text-slate-500">Off-Chain Database / Altered Hash:</span>
+                    <div class="text-rose-400 break-all bg-slate-900 p-2 rounded">{{ db_cert.certificate_hash }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-center">
+            <a href="{{ url_for('verify') }}" class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition">
+                Try Another Certificate
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- NOT FOUND ON BLOCKCHAIN -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-10 text-center backdrop-blur-xl shadow-2xl">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-3xl mx-auto mb-4">
+            <i class="fa-solid fa-file-circle-xmark"></i>
+        </div>
+        <h2 class="text-2xl font-extrabold text-white">Certificate Not Found on Blockchain</h2>
+        <p class="text-slate-400 text-sm max-w-md mx-auto mt-2">
+            No certificate with ID <span class="font-mono text-amber-400">{{ cert_id }}</span> has ever been anchored into the Ethereum Solidity smart contract.
+        </p>
+        <p class="text-xs text-slate-500 mt-2">
+            This certificate may be fraudulent, unregistered, or the ID was mistyped.
+        </p>
+        <div class="mt-8 flex justify-center space-x-4">
+            <a href="{{ url_for('verify') }}" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition">
+                Check Another ID
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

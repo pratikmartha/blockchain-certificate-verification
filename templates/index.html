@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}CertChain - Blockchain Certificate Verification System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
+    <!-- Glow Background Accents -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/3 left-1/4 -translate-y-1/2 w-80 h-80 bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <!-- Badge -->
+        <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-6">
+            <i class="fa-solid fa-link text-indigo-400"></i>
+            <span>Ethereum Solidity Smart Contract Powered</span>
+        </div>
+
+        <!-- Main Title -->
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
+            Tamper-Proof Academic Certificates Secured on <span class="bg-gradient-to-r from-indigo-400 via-purple-300 to-indigo-200 bg-clip-text text-transparent">Blockchain</span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            Eliminate degree fraud forever. Universities anchor credentials directly to Ethereum smart contracts, enabling instant, cryptographic verification anywhere in the world.
+        </p>
+
+        <!-- Fast Verification Search Bar -->
+        <div class="mt-10 max-w-2xl mx-auto">
+            <form action="{{ url_for('verify') }}" method="POST" class="relative group">
+                <div class="relative flex items-center bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2 shadow-2xl shadow-indigo-950/50 backdrop-blur-xl group-hover:border-indigo-500/50 transition">
+                    <div class="pl-4 text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                    </div>
+                    <input type="text" name="certificate_id" placeholder="Enter Certificate ID (e.g. CERT-2026-A1B2C3)..." required
+                           class="w-full bg-transparent text-white placeholder-slate-500 px-4 py-3 text-sm sm:text-base focus:outline-none">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center shrink-0">
+                        <span>Verify Now</span>
+                        <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+                    </button>
+                </div>
+            </form>
+            <div class="flex items-center justify-center space-x-6 mt-3 text-xs text-slate-400">
+                <span><i class="fa-solid fa-camera mr-1 text-indigo-400"></i> <a href="{{ url_for('verify') }}#qr-scan" class="hover:text-white underline">Scan QR Code</a></span>
+                <span>•</span>
+                <span><i class="fa-solid fa-file-shield mr-1 text-emerald-400"></i> <a href="{{ url_for('verify') }}#file-verify" class="hover:text-white underline">Upload Certificate File</a></span>
+                <span>•</span>
+                <span><i class="fa-solid fa-flask mr-1 text-amber-400"></i> <a href="{{ url_for('tamper_demo') }}" class="hover:text-white underline">Tamper Simulation</a></span>
+            </div>
+        </div>
+
+        <!-- Live Statistics Counter -->
+        <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
+                <div class="text-3xl font-extrabold text-white">{{ stats.total_certificates }}</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Certificates Issued</div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
+                <div class="text-3xl font-extrabold text-emerald-400">{{ stats.total_verifications }}</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Total Verifications</div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
+                <div class="text-3xl font-extrabold text-indigo-400">{{ blockchain_info.block_number }}</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Current Block Height</div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
+                <div class="text-3xl font-extrabold text-purple-400">{{ stats.total_institutions }}</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Institutions Active</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="py-16 bg-slate-900/40 border-y border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-14">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-2">Architectural Workflow</h2>
+            <h3 class="text-3xl font-extrabold text-white">How Blockchain Guarantees Absolute Authenticity</h3>
+            <p class="text-slate-400 text-sm mt-3">Every credential undergoes cryptographic hashing and is anchored immutably into Ethereum's EVM state machine.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Step 1 -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 relative hover:border-indigo-500/50 transition">
+                <div class="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-xl mb-4 font-bold">
+                    1
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Cryptographic Hashing</h4>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Student name, course, institution, and issue date are serialized and hashed using <strong>SHA-256</strong> to create a unique 256-bit digital fingerprint.
+                </p>
+                <div class="mt-4 pt-4 border-t border-slate-800 text-xs font-mono text-indigo-300 bg-slate-950/60 p-2.5 rounded-lg overflow-x-auto">
+                    hash = SHA-256(CertData)
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 relative hover:border-purple-500/50 transition">
+                <div class="w-12 h-12 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-400 flex items-center justify-center text-xl mb-4 font-bold">
+                    2
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Solidity Smart Contract</h4>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    The institution calls <code class="text-purple-300">issueCertificate()</code> on the Ethereum blockchain. The hash and ID are permanently mined in a block.
+                </p>
+                <div class="mt-4 pt-4 border-t border-slate-800 text-xs font-mono text-purple-300 bg-slate-950/60 p-2.5 rounded-lg overflow-x-auto">
+                    mapping(id => Certificate)
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 relative hover:border-emerald-500/50 transition">
+                <div class="w-12 h-12 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xl mb-4 font-bold">
+                    3
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Zero-Trust Verification</h4>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Recruiters or universities query the contract or scan the QR code. The blockchain confirms existence and hash integrity with zero gas cost.
+                </p>
+                <div class="mt-4 pt-4 border-t border-slate-800 text-xs font-mono text-emerald-300 bg-slate-950/60 p-2.5 rounded-lg overflow-x-auto">
+                    verifyCertificate(id) => VALID
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Certificates Table -->
+<div class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+        <div>
+            <h3 class="text-2xl font-bold text-white">Recently Issued Certificates</h3>
+            <p class="text-slate-400 text-sm">Real-time credentials anchored onto the Ethereum blockchain</p>
+        </div>
+        <a href="{{ url_for('explorer') }}" class="inline-flex items-center text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition">
+            <span>View Full Blockchain Ledger</span>
+            <i class="fa-solid fa-arrow-right ml-2"></i>
+        </a>
+    </div>
+
+    {% if recent_certs %}
+    <div class="overflow-x-auto bg-slate-900/60 border border-slate-800 rounded-2xl backdrop-blur-md">
+        <table class="w-full text-left text-sm text-slate-300">
+            <thead class="text-xs uppercase bg-slate-800/80 text-slate-400 border-b border-slate-700/80">
+                <tr>
+                    <th scope="col" class="px-6 py-4">Certificate ID</th>
+                    <th scope="col" class="px-6 py-4">Student</th>
+                    <th scope="col" class="px-6 py-4">Course</th>
+                    <th scope="col" class="px-6 py-4">Institution</th>
+                    <th scope="col" class="px-6 py-4">Block #</th>
+                    <th scope="col" class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/80">
+                {% for cert in recent_certs %}
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="px-6 py-4 font-mono text-xs font-bold text-indigo-400">
+                        {{ cert.certificate_id }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-white">
+                        {{ cert.student_name }}
+                    </td>
+                    <td class="px-6 py-4 text-slate-300">
+                        {{ cert.course }}
+                    </td>
+                    <td class="px-6 py-4 text-slate-400 text-xs">
+                        {{ cert.institution }}
+                    </td>
+                    <td class="px-6 py-4 font-mono text-xs text-slate-400">
+                        #{{ cert.block_number }}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{{ url_for('verify_result', cert_id=cert.certificate_id) }}" class="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 text-xs font-medium border border-emerald-500/30 transition">
+                            <i class="fa-solid fa-shield-check mr-1.5"></i> Verify
+                        </a>
+                        <a href="{{ url_for('view_certificate', cert_id=cert.certificate_id) }}" class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 text-xs font-medium border border-indigo-500/30 transition">
+                            <i class="fa-solid fa-eye mr-1.5"></i> View Cert
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center">
+        <div class="w-16 h-16 rounded-full bg-indigo-600/10 text-indigo-400 flex items-center justify-center text-2xl mx-auto mb-4">
+            <i class="fa-solid fa-certificate"></i>
+        </div>
+        <h4 class="text-lg font-bold text-white">No Certificates Issued Yet</h4>
+        <p class="text-slate-400 text-sm mt-1 max-w-md mx-auto">
+            Be the first to issue a blockchain-anchored certificate on this network.
+        </p>
+        <div class="mt-6">
+            <a href="{{ url_for('login') }}" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/25 transition">
+                Sign In as Institution
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Bhubaneswar Universities Education Hub Showcase -->
+<div class="py-16 bg-slate-900/50 border-t border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+            <div>
+                <div class="inline-flex items-center space-x-2 text-amber-400 text-xs font-bold tracking-wider uppercase mb-2">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span>Educational Capital of Eastern India</span>
+                </div>
+                <h3 class="text-3xl font-extrabold text-white">Bhubaneswar, Odisha Higher Education Network</h3>
+                <p class="text-slate-400 text-sm mt-1 max-w-2xl">
+                    Securing academic credentials for Bhubaneswar's premier institutions of national importance, state public universities, and research institutes.
+                </p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <a href="{{ url_for('universities') }}" class="inline-flex items-center px-5 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition">
+                    <span>View All 20 Institutions</span>
+                    <i class="fa-solid fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+            <a href="{{ url_for('universities') }}" class="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-xl text-center transition group hover:-translate-y-1">
+                <div class="text-amber-400 font-mono text-sm font-extrabold mb-1">UTKAL</div>
+                <div class="text-xs text-white font-medium group-hover:text-indigo-300 transition truncate">Utkal University</div>
+                <div class="text-[10px] text-slate-500 mt-1">Est. 1943</div>
+            </a>
+            <a href="{{ url_for('universities') }}" class="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-xl text-center transition group hover:-translate-y-1">
+                <div class="text-cyan-400 font-mono text-sm font-extrabold mb-1">IITBBS</div>
+                <div class="text-xs text-white font-medium group-hover:text-indigo-300 transition truncate">IIT Bhubaneswar</div>
+                <div class="text-[10px] text-slate-500 mt-1">National Importance</div>
+            </a>
+            <a href="{{ url_for('universities') }}" class="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-xl text-center transition group hover:-translate-y-1">
+                <div class="text-rose-400 font-mono text-sm font-extrabold mb-1">AIIMS</div>
+                <div class="text-xs text-white font-medium group-hover:text-indigo-300 transition truncate">AIIMS Bhubaneswar</div>
+                <div class="text-[10px] text-slate-500 mt-1">Apex Medical</div>
+            </a>
+            <a href="{{ url_for('universities') }}" class="bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 p-4 rounded-xl text-center transition group hover:-translate-y-1 bg-gradient-to-b from-slate-900 to-emerald-950/20 border-emerald-500/30">
+                <div class="text-emerald-400 font-mono text-sm font-extrabold mb-1">CUTM</div>
+                <div class="text-xs text-white font-bold group-hover:text-emerald-300 transition truncate">Centurion University</div>
+                <div class="text-[10px] text-emerald-400/80 mt-1">NAAC A+ Skill Univ</div>
+            </a>
+            <a href="{{ url_for('universities') }}" class="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-xl text-center transition group hover:-translate-y-1">
+                <div class="text-purple-400 font-mono text-sm font-extrabold mb-1">KIIT</div>
+                <div class="text-xs text-white font-medium group-hover:text-indigo-300 transition truncate">KIIT University</div>
+                <div class="text-[10px] text-slate-500 mt-1">Deemed (IoE)</div>
+            </a>
+            <a href="{{ url_for('universities') }}" class="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-xl text-center transition group hover:-translate-y-1">
+                <div class="text-teal-400 font-mono text-sm font-extrabold mb-1">SOA</div>
+                <div class="text-xs text-white font-medium group-hover:text-indigo-300 transition truncate">SOA University</div>
+                <div class="text-[10px] text-slate-500 mt-1">Deemed (NAAC A++)</div>
+            </a>
+            <a href="{{ url_for('universities') }}" class="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-xl text-center transition group hover:-translate-y-1">
+                <div class="text-indigo-400 font-mono text-sm font-extrabold mb-1">OUTR</div>
+                <div class="text-xs text-white font-medium group-hover:text-indigo-300 transition truncate">OUTR (CET)</div>
+                <div class="text-[10px] text-slate-500 mt-1">Technical University</div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Tamper CTA Banner -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="bg-gradient-to-r from-amber-950/40 via-slate-900 to-indigo-950/40 border border-amber-500/30 rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+        <div class="max-w-2xl relative z-10">
+            <div class="inline-flex items-center space-x-2 text-amber-400 text-xs font-bold tracking-wider uppercase mb-3">
+                <i class="fa-solid fa-flask-vial"></i>
+                <span>Interactive Security Simulation</span>
+            </div>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-white">Test How Blockchain Defeats Fraud</h3>
+            <p class="text-slate-300 text-sm sm:text-base mt-3 leading-relaxed">
+                See for yourself: modify even a single character in a student's name, degree, or grade, and observe the cryptographic SHA-256 hash mismatch live against Ethereum's immutable smart contract.
+            </p>
+            <div class="mt-6">
+                <a href="{{ url_for('tamper_demo') }}" class="inline-flex items-center px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition">
+                    <i class="fa-solid fa-play mr-2"></i> Launch Tamper Demo
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

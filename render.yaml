@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: certchain-blockchain-verification
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
+    startCommand: "gunicorn --workers=1 --threads=4 --timeout=120 --bind=0.0.0.0:$PORT wsgi:app"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "0"

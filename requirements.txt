@@ -1,0 +1,13 @@
+Flask>=3.0.0
+web3>=6.0.0
+py-solc-x>=2.0.0
+eth-tester>=0.12.0
+py-evm>=0.12.0
+qrcode>=7.4
+Pillow>=10.0.0
+pycryptodome>=3.20.0
+requests>=2.31.0
+gunicorn>=21.2.0
+waitress>=2.1.2
+python-dotenv>=1.0.0
+

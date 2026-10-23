@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Tamper Detection Demonstration Lab - CertChain{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-3">
+            <i class="fa-solid fa-flask-vial"></i>
+            <span>Interactive Security Simulation</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Blockchain Tamper-Proof Lab</h1>
+        <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl mx-auto leading-relaxed">
+            Experience why traditional certificates can be forged with Photoshop, but blockchain-anchored credentials cannot. Change a single letter and witness the cryptographic rejection in real time.
+        </p>
+    </div>
+
+    <!-- Main Interactive Area -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Form / Tamper Controls -->
+        <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-1 flex items-center">
+                <i class="fa-solid fa-pen-to-square mr-2 text-indigo-400"></i> Certificate Payload Editor
+            </h3>
+            <p class="text-xs text-slate-400 mb-6">Select a certificate and deliberately modify any field to test tamper detection.</p>
+
+            <form action="{{ url_for('tamper_demo') }}" method="POST" class="space-y-4">
+                <!-- Certificate Selector -->
+                {% if certificates %}
+                <div>
+                    <label for="select_cert" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        1. Select Certificate from Blockchain
+                    </label>
+                    <select id="select_cert" onchange="loadCertToTamper(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition font-mono">
+                        {% for c in certificates %}
+                        <option value="{{ c.certificate_id }}"
+                                data-student="{{ c.student_name }}"
+                                data-course="{{ c.course }}"
+                                data-institution="{{ c.institution }}"
+                                data-date="{{ c.issue_date }}"
+                                {% if selected_cert and selected_cert.certificate_id == c.certificate_id %}selected{% endif %}>
+                            {{ c.certificate_id }} — {{ c.student_name }} ({{ c.course }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- Editable / Tamperable Fields -->
+                <div>
+                    <label for="certificate_id" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                        Certificate ID
+                    </label>
+                    <input type="text" id="certificate_id" name="certificate_id" readonly
+                           value="{{ selected_cert.certificate_id if selected_cert else 'CERT-SAMPLE-001' }}"
+                           class="w-full bg-slate-950/60 border border-slate-800 text-slate-400 rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none">
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="student_name" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Student / Recipient Name
+                        </label>
+                        <span class="text-[10px] text-amber-400 font-semibold cursor-pointer" onclick="tamperName()">[Tamper Name]</span>
+                    </div>
+                    <input type="text" id="student_name" name="student_name" required
+                           value="{{ selected_cert.student_name if selected_cert else 'Alice Johnson' }}"
+                           class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition">
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="course" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Course / Qualification
+                        </label>
+                        <span class="text-[10px] text-amber-400 font-semibold cursor-pointer" onclick="tamperDegree()">[Upgrade Degree]</span>
+                    </div>
+                    <input type="text" id="course" name="course" required
+                           value="{{ selected_cert.course if selected_cert else 'B.Sc Computer Science' }}"
+                           class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="institution" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                            Institution
+                        </label>
+                        <input type="text" id="institution" name="institution" required
+                               value="{{ selected_cert.institution if selected_cert else 'Stanford University' }}"
+                               class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="issue_date" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                            Issue Date
+                        </label>
+                        <input type="text" id="issue_date" name="issue_date" required
+                               value="{{ selected_cert.issue_date if selected_cert else '2026-09-23' }}"
+                               class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition font-mono">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex flex-col sm:flex-row gap-3">
+                    <button type="submit" class="flex-1 py-3 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center justify-center">
+                        <i class="fa-solid fa-calculator mr-2"></i> Compute Hash & Verify On-Chain
+                    </button>
+                    <button type="button" onclick="restoreOriginal()" class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                        Reset Original
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Outcome / Cryptographic Breakdown -->
+        <div class="lg:col-span-5 space-y-6">
+            {% if tamper_result %}
+                {% if tamper_result.is_match %}
+                <!-- Match Card -->
+                <div class="bg-emerald-950/40 border border-emerald-500/40 rounded-3xl p-6 backdrop-blur-xl shadow-xl">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-white text-base">Hash Match Confirmed!</h4>
+                            <p class="text-xs text-emerald-300">Data matches Ethereum smart contract record.</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/80 p-4 rounded-xl font-mono text-xs space-y-3">
+                        <div>
+                            <div class="text-slate-500 mb-1">Blockchain Hash:</div>
+                            <div class="text-emerald-400 break-all">{{ tamper_result.on_chain_hash }}</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-500 mb-1">Computed Hash:</div>
+                            <div class="text-emerald-400 break-all">{{ tamper_result.calculated_hash }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Tampered Rejection Card -->
+                <div class="bg-rose-950/40 border border-rose-500/50 rounded-3xl p-6 backdrop-blur-xl shadow-xl">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-white text-base">Tampering Detected!</h4>
+                            <p class="text-xs text-rose-300">Blockchain Smart Contract Rejects Credential</p>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        The modified data produced a completely different SHA-256 digest. Because Ethereum's smart contract is immutable, this fake credential is automatically rejected!
+                    </p>
+
+                    <div class="bg-slate-950/80 p-4 rounded-xl font-mono text-[11px] space-y-3 border border-rose-900/40">
+                        <div>
+                            <div class="text-emerald-400 font-bold mb-1">Authentic Hash on Ethereum:</div>
+                            <div class="text-emerald-300 break-all bg-slate-900 p-2 rounded">{{ tamper_result.on_chain_hash }}</div>
+                        </div>
+                        <div>
+                            <div class="text-rose-400 font-bold mb-1">Tampered Hash (Computed):</div>
+                            <div class="text-rose-300 break-all bg-slate-900 p-2 rounded">{{ tamper_result.calculated_hash }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+            <!-- Initial Instruction Card -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-md">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xl mb-4">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h4 class="text-base font-bold text-white mb-2">Cryptographic Avalanche Effect</h4>
+                <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                    In cryptography, modifying even <strong>1 bit</strong> of data will cause more than 50% of the SHA-256 output bits to flip completely.
+                </p>
+                <div class="bg-slate-950 p-4 rounded-xl text-xs font-mono space-y-2 text-slate-300 border border-slate-800">
+                    <div class="text-slate-500 font-semibold">How to test:</div>
+                    <div>1. Click <strong class="text-amber-400">[Tamper Name]</strong> above.</div>
+                    <div>2. Click <strong class="text-amber-400">[Upgrade Degree]</strong>.</div>
+                    <div>3. Click "Compute Hash & Verify On-Chain".</div>
+                    <div>4. Notice the instant blockchain rejection!</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Architecture Note -->
+            <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 text-xs text-slate-400 space-y-2">
+                <div class="font-bold text-white flex items-center">
+                    <i class="fa-brands fa-ethereum text-indigo-400 mr-2"></i> Why it's impossible to alter on-chain
+                </div>
+                <p class="leading-relaxed">
+                    Once mined into a block via <code class="text-indigo-300">issueCertificate()</code>, the certificate hash is protected by Ethereum consensus. Even the issuing university or server admin cannot retroactively edit an existing certificate hash without breaking the entire blockchain!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let originalData = {
+        student: "{{ selected_cert.student_name if selected_cert else 'Alice Johnson' }}",
+        course: "{{ selected_cert.course if selected_cert else 'B.Sc Computer Science' }}"
+    };
+
+    function loadCertToTamper(certId) {
+        const select = document.getElementById('select_cert');
+        const opt = select.options[select.selectedIndex];
+        document.getElementById('certificate_id').value = certId;
+        document.getElementById('student_name').value = opt.getAttribute('data-student');
+        document.getElementById('course').value = opt.getAttribute('data-course');
+        document.getElementById('institution').value = opt.getAttribute('data-institution');
+        document.getElementById('issue_date').value = opt.getAttribute('data-date');
+
+        originalData = {
+            student: opt.getAttribute('data-student'),
+            course: opt.getAttribute('data-course')
+        };
+    }
+
+    function tamperName() {
+        const nameInput = document.getElementById('student_name');
+        nameInput.value = nameInput.value + " (Forged)";
+        nameInput.classList.add('border-amber-400', 'bg-amber-950/20');
+    }
+
+    function tamperDegree() {
+        const courseInput = document.getElementById('course');
+        courseInput.value = "Ph.D. in Artificial Intelligence (Honorary)";
+        courseInput.classList.add('border-amber-400', 'bg-amber-950/20');
+    }
+
+    function restoreOriginal() {
+        document.getElementById('student_name').value = originalData.student;
+        document.getElementById('course').value = originalData.course;
+        document.getElementById('student_name').classList.remove('border-amber-400', 'bg-amber-950/20');
+        document.getElementById('course').classList.remove('border-amber-400', 'bg-amber-950/20');
+    }
+</script>
+{% endblock %}

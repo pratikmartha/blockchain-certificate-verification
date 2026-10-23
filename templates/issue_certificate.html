@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Issue Certificate on Blockchain - CertChain{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="inline-flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
+            <i class="fa-solid fa-stamp"></i>
+            <span>Smart Contract Transaction</span>
+        </div>
+        <h1 class="text-3xl font-extrabold text-white">Issue Blockchain-Anchored Certificate</h1>
+        <p class="text-slate-400 text-sm mt-1">
+            Data will be hashed using SHA-256 and permanently recorded into Ethereum via Solidity's <code class="text-indigo-300">issueCertificate()</code>.
+        </p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-10 backdrop-blur-xl shadow-2xl">
+        <form action="{{ url_for('issue_certificate') }}" method="POST" id="issueForm" class="space-y-6">
+            <!-- Row 1: Certificate ID & Auto-generator -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label for="certificate_id" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Certificate Unique Identifier (ID) <span class="text-rose-400">*</span>
+                    </label>
+                    <button type="button" onclick="regenerateId()" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center">
+                        <i class="fa-solid fa-shuffle mr-1"></i> Generate New ID
+                    </button>
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 font-mono text-xs">
+                        <i class="fa-solid fa-barcode text-sm"></i>
+                    </div>
+                    <input type="text" id="certificate_id" name="certificate_id" required value="{{ suggested_id }}"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+            </div>
+
+            <!-- Row 2: Student Name & Email -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="student_name" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Student / Recipient Full Name <span class="text-rose-400">*</span>
+                    </label>
+                    <input type="text" id="student_name" name="student_name" required placeholder="e.g. Alex Morgan"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <label for="student_email" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Student Email (Optional)
+                    </label>
+                    <input type="email" id="student_email" name="student_email" placeholder="alex.morgan@alumni.edu"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+            </div>
+
+            <!-- Row 3: Course / Qualification & Grade -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="course" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Course / Degree Title <span class="text-rose-400">*</span>
+                    </label>
+                    <input type="text" id="course" name="course" required placeholder="e.g. Master of Science in Blockchain Architecture"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <label for="grade" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Grade / Classification
+                    </label>
+                    <select id="grade" name="grade" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                        <option value="First Class with Distinction">First Class with Distinction (Summa Cum Laude)</option>
+                        <option value="First Class" selected>First Class</option>
+                        <option value="Upper Second Class">Upper Second Class (2:1)</option>
+                        <option value="Pass">Pass / Completed</option>
+                        <option value="High Distinction">High Distinction</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 4: Institution & Issue Date -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="institution" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Issuing Institution / University <span class="text-rose-400">*</span>
+                        </label>
+                        <a href="{{ url_for('universities') }}" target="_blank" class="text-[11px] text-amber-400 hover:text-amber-300 flex items-center">
+                            <i class="fa-solid fa-building-columns mr-1"></i> Bhubaneswar Hub
+                        </a>
+                    </div>
+                    <input type="text" id="institution" name="institution" list="bhubaneswarUniversitiesList" required value="{{ default_institution }}"
+                           placeholder="Select or type Bhubaneswar University..."
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                    <datalist id="bhubaneswarUniversitiesList">
+                        {% for univ in bhubaneswar_universities %}
+                        <option value="{{ univ.name }}">{{ univ.short_code }} - {{ univ.category }}</option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div>
+                    <label for="issue_date" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Issue Date <span class="text-rose-400">*</span>
+                    </label>
+                    <input type="date" id="issue_date" name="issue_date" required value="{{ today }}"
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition font-mono">
+                </div>
+            </div>
+
+            <!-- Real-time SHA-256 Digest Preview Card -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 font-mono text-xs space-y-2">
+                <div class="flex items-center justify-between text-slate-400 font-sans border-b border-slate-800 pb-2">
+                    <span class="font-bold uppercase tracking-wider text-[11px] text-indigo-400 flex items-center">
+                        <i class="fa-solid fa-calculator mr-1.5"></i> Real-time Cryptographic Digest Preview
+                    </span>
+                    <span class="text-emerald-400 text-[10px]">SHA-256 Auto-Computed</span>
+                </div>
+                <div class="text-slate-500">Payload Fingerprint:</div>
+                <div id="liveHash" class="text-emerald-400 break-all bg-slate-900 p-2.5 rounded-lg border border-slate-850 font-bold">
+                    Calculating...
+                </div>
+                <p class="text-[11px] font-sans text-slate-500 pt-1">
+                    This exact 256-bit hash will be registered inside the Ethereum smart contract storage mapping.
+                </p>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" id="submitBtn" class="w-full py-4 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition flex items-center justify-center">
+                    <i class="fa-brands fa-ethereum text-lg mr-2"></i>
+                    <span>Execute Transaction & Anchor on Blockchain</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function regenerateId() {
+        const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const year = new Date().getFullYear();
+        document.getElementById('certificate_id').value = `CERT-${year}-${rand}`;
+        updateLiveHash();
+    }
+
+    async function updateLiveHash() {
+        const certId = document.getElementById('certificate_id').value.trim();
+        const name = document.getElementById('student_name').value.trim();
+        const course = document.getElementById('course').value.trim();
+        const institution = document.getElementById('institution').value.trim();
+        const date = document.getElementById('issue_date').value.trim();
+
+        const rawString = `${certId}|${name}|${course}|${institution}|${date}`;
+        const encoder = new TextEncoder();
+        const data = encoder.encode(rawString);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        document.getElementById('liveHash').innerText = hashHex;
+    }
+
+    // Attach real-time listeners to inputs
+    ['certificate_id', 'student_name', 'course', 'institution', 'issue_date'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', updateLiveHash);
+        }
+    });
+
+    // Form submit loading state
+    document.getElementById('issueForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mining Transaction on Ethereum...`;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+    });
+
+    // Initial run
+    updateLiveHash();
+</script>
+{% endblock %}

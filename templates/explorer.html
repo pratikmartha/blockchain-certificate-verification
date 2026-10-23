@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Blockchain Ledger Explorer - CertChain{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold mb-2">
+                <i class="fa-solid fa-cubes"></i>
+                <span>Public Decentralized Ledger</span>
+            </div>
+            <h1 class="text-3xl font-extrabold text-white">Blockchain Explorer</h1>
+            <p class="text-slate-400 text-sm mt-1">Live inspection of smart contract transactions, blocks, and cryptographic proofs.</p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-2"></span> Synced
+            </span>
+        </div>
+    </div>
+
+    <!-- Node Diagnostic Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 backdrop-blur-md">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Network Provider</div>
+            <div class="text-base font-bold text-white flex items-center">
+                <i class="fa-brands fa-ethereum text-indigo-400 mr-2"></i> {{ status.provider }}
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">Solidity 0.8.20 EVM Target</div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 backdrop-blur-md">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Current Block Number</div>
+            <div class="text-2xl font-black text-indigo-400 font-mono">
+                #{{ status.block_number }}
+            </div>
+            <div class="text-[11px] text-emerald-400 mt-1">Validated & Confirmed</div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 backdrop-blur-md">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">On-Chain Certificates</div>
+            <div class="text-2xl font-black text-emerald-400 font-mono">
+                {{ status.total_certificates_on_chain }}
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">Permanent Smart Contract Records</div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 backdrop-blur-md">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Gas Price</div>
+            <div class="text-base font-bold text-white font-mono">
+                {{ status.gas_price_gwei }} Gwei
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">EVM Base Fee</div>
+        </div>
+    </div>
+
+    <!-- Contract Details Panel -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 mb-8 text-xs font-mono space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 font-sans">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Deployed Smart Contract Details</span>
+            <span class="text-[11px] text-slate-400">CertificateVerification.sol</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <span class="text-slate-500">Contract Address:</span>
+                <div class="text-indigo-300 break-all select-all bg-slate-950 p-2 rounded border border-slate-800/80 mt-1">
+                    {{ status.contract_address }}
+                </div>
+            </div>
+            <div>
+                <span class="text-slate-500">Authorized Deployer Account:</span>
+                <div class="text-slate-300 break-all select-all bg-slate-950 p-2 rounded border border-slate-800/80 mt-1">
+                    {{ status.default_account }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ledger Tables -->
+    <div class="space-y-8">
+        <!-- Certificates Registered -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-md">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-white">Immutable Certificate Ledger</h3>
+                    <p class="text-xs text-slate-400">Transactions mined on the Ethereum blockchain</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold">
+                    {{ certificates|length }} Records
+                </span>
+            </div>
+
+            {% if certificates %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="uppercase bg-slate-800/70 text-slate-400 border-b border-slate-700/80 font-mono">
+                        <tr>
+                            <th scope="col" class="px-6 py-3.5">Certificate ID</th>
+                            <th scope="col" class="px-6 py-3.5">Recipient</th>
+                            <th scope="col" class="px-6 py-3.5">Qualification</th>
+                            <th scope="col" class="px-6 py-3.5">Tx Hash</th>
+                            <th scope="col" class="px-6 py-3.5">Block</th>
+                            <th scope="col" class="px-6 py-3.5 text-right">Verification</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 font-mono">
+                        {% for cert in certificates %}
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="px-6 py-4 font-bold text-indigo-400">
+                                {{ cert.certificate_id }}
+                            </td>
+                            <td class="px-6 py-4 font-sans font-medium text-white">
+                                {{ cert.student_name }}
+                            </td>
+                            <td class="px-6 py-4 font-sans text-slate-300">
+                                {{ cert.course }}
+                            </td>
+                            <td class="px-6 py-4 text-slate-400 break-all max-w-xs" title="{{ cert.tx_hash }}">
+                                {{ cert.tx_hash[:16] }}...{{ cert.tx_hash[-8:] if cert.tx_hash else '' }}
+                            </td>
+                            <td class="px-6 py-4 text-emerald-400">
+                                #{{ cert.block_number }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-sans">
+                                <a href="{{ url_for('verify_result', cert_id=cert.certificate_id) }}" class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 font-medium transition border border-indigo-500/30">
+                                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Verify
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-8 text-center text-slate-500 text-xs">
+                No certificate transactions have been executed yet.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Verification Audit Trail -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-md">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-white">Recent Verification Inquiries</h3>
+                    <p class="text-xs text-slate-400">Public audit trail of credential verification requests</p>
+                </div>
+            </div>
+
+            {% if verifications %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="uppercase bg-slate-800/70 text-slate-400 border-b border-slate-700/80 font-mono">
+                        <tr>
+                            <th scope="col" class="px-6 py-3.5">Timestamp</th>
+                            <th scope="col" class="px-6 py-3.5">Certificate ID</th>
+                            <th scope="col" class="px-6 py-3.5">Status</th>
+                            <th scope="col" class="px-6 py-3.5">Client IP</th>
+                            <th scope="col" class="px-6 py-3.5">Inquiry Details</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 font-mono">
+                        {% for log in verifications %}
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="px-6 py-3.5 text-slate-400">
+                                {{ log.verified_at }}
+                            </td>
+                            <td class="px-6 py-3.5 font-bold text-indigo-400">
+                                {{ log.certificate_id }}
+                            </td>
+                            <td class="px-6 py-3.5 font-sans">
+                                {% if log.status == 'AUTHENTIC' %}
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold text-[11px]">
+                                    <i class="fa-solid fa-check mr-1"></i> Authentic
+                                </span>
+                                {% elif log.status == 'TAMPERED' %}
+                                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-semibold text-[11px]">
+                                    <i class="fa-solid fa-xmark mr-1"></i> Tampered
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-semibold text-[11px]">
+                                    <i class="fa-solid fa-question mr-1"></i> Not Found
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-3.5 text-slate-500">
+                                {{ log.verifier_ip }}
+                            </td>
+                            <td class="px-6 py-3.5 font-sans text-slate-400">
+                                {{ log.details }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-8 text-center text-slate-500 text-xs">
+                No verification inquiries logged yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

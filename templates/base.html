@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CertChain - Blockchain Certificate Verification{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        cert: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Network Diagnostic Header -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-xs py-2 px-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-3">
+                <span class="flex items-center text-emerald-400 font-mono font-medium">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span>
+                    {{ blockchain_status.provider }}
+                </span>
+                <span class="text-slate-500">|</span>
+                <span class="text-slate-400 font-mono">Block: #{{ blockchain_status.block_number }}</span>
+                <span class="text-slate-500 hidden sm:inline">|</span>
+                <span class="text-slate-400 font-mono hidden sm:inline" title="{{ blockchain_status.contract_address }}">
+                    Contract: <span class="text-indigo-400">{{ blockchain_status.contract_address[:10] }}...{{ blockchain_status.contract_address[-6:] }}</span>
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('tamper_demo') }}" class="text-amber-400 hover:text-amber-300 transition flex items-center font-medium">
+                    <i class="fa-solid fa-flask-vial mr-1.5"></i> Tamper Demo Lab
+                </a>
+                <span class="text-slate-600">|</span>
+                <span class="text-slate-400">Solidity <span class="text-slate-300 font-mono">0.8.20</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="bg-slate-900/70 border-b border-slate-800/80 sticky top-[33px] z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('index') }}" class="flex items-center space-x-2.5 group">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300">
+                            <i class="fa-solid fa-certificate text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">CertChain</span>
+                            <span class="block text-[10px] uppercase font-bold tracking-widest text-indigo-400">Ethereum Verified</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                    <a href="{{ url_for('index') }}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800/80 text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-house mr-1.5 text-slate-400"></i> Home
+                    </a>
+                    <a href="{{ url_for('verify') }}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800/80 text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-shield-check mr-1.5 text-emerald-400"></i> Verify Certificate
+                    </a>
+                    <a href="{{ url_for('universities') }}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800/80 text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-building-columns mr-1.5 text-amber-400"></i> Bhubaneswar Universities
+                    </a>
+                    <a href="{{ url_for('explorer') }}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800/80 text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-cube mr-1.5 text-indigo-400"></i> Blockchain Ledger
+                    </a>
+                    <a href="{{ url_for('tamper_demo') }}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800/80 text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-bug-slash mr-1.5 text-rose-400"></i> Tamper Test
+                    </a>
+                </div>
+
+                <!-- Admin Auth CTAs -->
+                <div class="flex items-center space-x-3">
+                    {% if session.get('admin_id') %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-600/30 text-sm font-medium flex items-center transition">
+                            <i class="fa-solid fa-gauge-high mr-2 text-indigo-400"></i> Dashboard
+                        </a>
+                        <a href="{{ url_for('issue_certificate') }}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium shadow-md shadow-indigo-600/25 flex items-center transition">
+                            <i class="fa-solid fa-plus-circle mr-2"></i> Issue Cert
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition" title="Logout">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                            <i class="fa-solid fa-lock mr-1.5 text-slate-400"></i> Institution Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium shadow-md shadow-indigo-600/25 flex items-center transition">
+                            <i class="fa-solid fa-building-columns mr-1.5"></i> Register
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="space-y-2">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-xl text-sm font-medium flex items-center justify-between shadow-lg backdrop-blur-md border {% if category == 'success' %}bg-emerald-950/60 border-emerald-500/40 text-emerald-200{% elif category == 'danger' %}bg-rose-950/60 border-rose-500/40 text-rose-200{% elif category == 'warning' %}bg-amber-950/60 border-amber-500/40 text-amber-200{% else %}bg-indigo-950/60 border-indigo-500/40 text-indigo-200{% endif %}">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid {% if category == 'success' %}fa-circle-check text-emerald-400{% elif category == 'danger' %}fa-circle-exclamation text-rose-400{% elif category == 'warning' %}fa-triangle-exclamation text-amber-400{% else %}fa-circle-info text-indigo-400{% endif %} text-lg"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white transition">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Dynamic Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 text-sm mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs">
+                            <i class="fa-solid fa-certificate"></i>
+                        </div>
+                        <span class="font-bold text-white text-base">CertChain</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Decentralized, tamper-evident educational and institutional credential verification built on the Ethereum blockchain using Solidity.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-3">Verification</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="{{ url_for('verify') }}" class="hover:text-indigo-400 transition">Search Certificate ID</a></li>
+                        <li><a href="{{ url_for('verify') }}#qr-scan" class="hover:text-indigo-400 transition">Scan QR Code</a></li>
+                        <li><a href="{{ url_for('verify') }}#file-verify" class="hover:text-indigo-400 transition">Upload Certificate Document</a></li>
+                        <li><a href="{{ url_for('tamper_demo') }}" class="hover:text-indigo-400 transition">Cryptographic Tamper Test</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-3">Smart Contract</h4>
+                    <ul class="space-y-2 text-xs font-mono">
+                        <li><span class="text-slate-500">Language:</span> Solidity 0.8.20</li>
+                        <li><span class="text-slate-500">Contract:</span> CertificateVerification</li>
+                        <li><span class="text-slate-500">Standard:</span> Custom EVM Hash Ledger</li>
+                        <li><a href="{{ url_for('explorer') }}" class="text-indigo-400 hover:underline">View On-Chain Ledger</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-3">Institutions</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="{{ url_for('universities') }}" class="hover:text-amber-300 transition text-slate-300"><i class="fa-solid fa-building-columns mr-1 text-amber-400"></i> Bhubaneswar Universities</a></li>
+                        <li><a href="{{ url_for('login') }}" class="hover:text-indigo-400 transition">Issuer Sign In</a></li>
+                        <li><a href="{{ url_for('register') }}" class="hover:text-indigo-400 transition">Register University / Board</a></li>
+                        <li><a href="{{ url_for('issue_certificate') }}" class="hover:text-indigo-400 transition">Anchor New Credential</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+                <p>&copy; {{ current_year }} CertChain Verification Network. Powered by Ethereum, Solidity & Web3.py.</p>
+                <div class="flex items-center space-x-4">
+                    <span class="inline-flex items-center text-emerald-400">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span> Consensus: Active
+                    </span>
+                    <span>SHA-256 Cryptographic Anchoring</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

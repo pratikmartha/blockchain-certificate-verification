@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Register Institution - CertChain{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xl mx-auto mb-3 border border-indigo-500/30">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-white">Register Institution</h2>
+            <p class="text-xs text-slate-400 mt-1">Enroll your organization as an authorized credential issuer</p>
+        </div>
+
+        <form action="{{ url_for('register') }}" method="POST" class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label for="institution_name" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Institution / University Name
+                    </label>
+                    <a href="{{ url_for('universities') }}" target="_blank" class="text-[11px] text-amber-400 hover:text-amber-300">
+                        <i class="fa-solid fa-building-columns mr-1"></i> Bhubaneswar List
+                    </a>
+                </div>
+                <input type="text" id="institution_name" name="institution_name" list="bhubaneswarUniversitiesList" required placeholder="Select or type Bhubaneswar University..."
+                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                <datalist id="bhubaneswarUniversitiesList">
+                    {% for univ in bhubaneswar_universities %}
+                    <option value="{{ univ.name }}">{{ univ.short_code }} - {{ univ.category }}</option>
+                    {% endfor %}
+                </datalist>
+            </div>
+
+            <div>
+                <label for="username" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Admin Username
+                </label>
+                <input type="text" id="username" name="username" required placeholder="e.g. cambridge_admin"
+                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+            </div>
+
+            <div>
+                <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Official Email
+                </label>
+                <input type="email" id="email" name="email" required placeholder="admin@cambridge.edu"
+                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+            </div>
+
+            <div>
+                <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Password
+                </label>
+                <input type="password" id="password" name="password" required placeholder="••••••••"
+                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition flex items-center justify-center">
+                    <i class="fa-solid fa-user-plus mr-2 text-xs"></i> Create Institution Account
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-slate-800 text-center text-xs text-slate-400">
+            Already registered?
+            <a href="{{ url_for('login') }}" class="text-indigo-400 font-semibold hover:underline">Sign In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

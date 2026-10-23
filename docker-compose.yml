@@ -1,0 +1,35 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: certchain_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      - PORT=5000
+      - HOST=0.0.0.0
+      - SECRET_KEY=${SECRET_KEY:-blockchain-cert-prod-key-change-me}
+      - FLASK_DEBUG=${FLASK_DEBUG:-0}
+      - DATABASE_PATH=/app/data/database.db
+      - QR_FOLDER=/app/static/qr_codes
+      # Optional external Ethereum node (leave unset to use embedded Py-EVM node)
+      # - RPC_URL=http://ganache:8545
+      # - PRIVATE_KEY=0x...
+      # - CONTRACT_ADDRESS=0x...
+    volumes:
+      - certchain_data:/app/data
+      - certchain_qr:/app/static/qr_codes
+
+# Optional Ganache service if you wish to run a dedicated EVM node in container
+# ganache:
+#   image: trufflesuite/ganache:latest
+#   container_name: certchain_ganache
+#   ports:
+#     - "8545:8545"
+#   command: ["--wallet.deterministic", "--server.host", "0.0.0.0"]
+
+volumes:
+  certchain_data:
+  certchain_qr:

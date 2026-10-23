@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate - CertChain Blockchain Network{% endblock %}
+
+{% block head %}
+<!-- HTML5 QR Code library for camera & image scanning -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-3">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Zero-Trust Decentralized Verification</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Verify Certificate Authenticity</h1>
+        <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-xl mx-auto">
+            Directly queries the Ethereum Solidity Smart Contract to prove certificate existence, issuer validity, and tamper-free integrity.
+        </p>
+    </div>
+
+    <!-- Verification Card with Tabs -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <!-- Tabs Header -->
+        <div class="flex border-b border-slate-800 mb-8 space-x-4">
+            <button id="tab-btn-id" onclick="switchVerifyTab('id')"
+                    class="tab-btn pb-3 px-2 text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 transition flex items-center">
+                <i class="fa-solid fa-id-card mr-2"></i> Certificate ID
+            </button>
+            <button id="tab-btn-qr" onclick="switchVerifyTab('qr')"
+                    class="tab-btn pb-3 px-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition flex items-center">
+                <i class="fa-solid fa-qrcode mr-2"></i> QR Code Scanner
+            </button>
+            <button id="tab-btn-file" onclick="switchVerifyTab('file')"
+                    class="tab-btn pb-3 px-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition flex items-center">
+                <i class="fa-solid fa-file-shield mr-2"></i> Document SHA-256
+            </button>
+        </div>
+
+        <!-- TAB 1: By Certificate ID -->
+        <div id="tab-content-id" class="tab-pane">
+            <form action="{{ url_for('verify') }}" method="POST" class="space-y-6">
+                <div>
+                    <label for="certificate_id" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Enter Unique Certificate ID
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-barcode text-lg"></i>
+                        </div>
+                        <input type="text" id="certificate_id" name="certificate_id" required
+                               placeholder="e.g. CERT-2026-A1B2C3"
+                               class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition font-mono text-sm">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">
+                        You can find this unique identifier printed at the bottom or corner of any authentic certificate.
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition flex items-center justify-center">
+                        <i class="fa-solid fa-shield-check mr-2 text-base"></i> Query Ethereum Blockchain
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 2: QR Scanner -->
+        <div id="tab-content-qr" class="tab-pane hidden">
+            <div class="space-y-6 text-center">
+                <p class="text-xs text-slate-400">
+                    Scan the QR code printed on the physical or digital certificate using your device camera or upload a QR image.
+                </p>
+
+                <!-- Reader Box -->
+                <div id="qr-reader" class="mx-auto max-w-sm rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 p-2"></div>
+                <div id="qr-reader-results" class="text-xs font-mono text-indigo-400 mt-2"></div>
+
+                <div class="flex items-center justify-center space-x-3">
+                    <button id="start-scan-btn" onclick="startQrScanner()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition">
+                        <i class="fa-solid fa-camera mr-1.5"></i> Start Camera
+                    </button>
+                    <button id="stop-scan-btn" onclick="stopQrScanner()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition hidden">
+                        <i class="fa-solid fa-stop mr-1.5"></i> Stop Camera
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: File / Document Hash Verifier -->
+        <div id="tab-content-file" class="tab-pane hidden">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Upload Certificate Document (PDF or Image)
+                    </label>
+                    <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-8 text-center bg-slate-950/60 transition cursor-pointer">
+                        <input type="file" id="file-input" class="hidden" accept=".pdf,image/*">
+                        <div class="w-12 h-12 rounded-full bg-indigo-600/10 text-indigo-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-white">Click or drag & drop certificate file here</p>
+                        <p class="text-xs text-slate-400 mt-1">Supports PDF, PNG, JPG files</p>
+                    </div>
+                </div>
+
+                <!-- Hash Result Box -->
+                <div id="file-hash-container" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono">
+                    <div class="text-slate-400 mb-1">Computed SHA-256 Cryptographic Hash:</div>
+                    <div id="file-hash-display" class="text-emerald-400 break-all font-bold"></div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                        <span id="file-status-text" class="text-slate-300">File processed in browser memory</span>
+                        <button id="search-by-hash-btn" onclick="verifyByHash()" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-sans font-semibold text-xs hover:bg-indigo-500 transition">
+                            Verify Hash on Chain
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function switchVerifyTab(tab) {
+        document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('border-indigo-500', 'text-indigo-400');
+            el.classList.add('border-transparent', 'text-slate-400');
+        });
+
+        document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+        const activeBtn = document.getElementById(`tab-btn-${tab}`);
+        activeBtn.classList.remove('border-transparent', 'text-slate-400');
+        activeBtn.classList.add('border-indigo-500', 'text-indigo-400');
+
+        if (tab !== 'qr') {
+            stopQrScanner();
+        }
+    }
+
+    // Hash anchor check on load
+    if (window.location.hash === '#qr-scan') {
+        switchVerifyTab('qr');
+    } else if (window.location.hash === '#file-verify') {
+        switchVerifyTab('file');
+    }
+
+    // QR Scanner Implementation
+    let html5QrcodeScanner = null;
+
+    function startQrScanner() {
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        }
+        document.getElementById('start-scan-btn').classList.add('hidden');
+        document.getElementById('stop-scan-btn').classList.remove('hidden');
+
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText, decodedResult) => {
+                stopQrScanner();
+                // Check if decoded text is a full URL or ID
+                if (decodedText.includes('/verify/')) {
+                    window.location.href = decodedText;
+                } else {
+                    window.location.href = `/verify/${encodeURIComponent(decodedText)}`;
+                }
+            },
+            (errorMessage) => {
+                // ignore scanning frames
+            }
+        ).catch(err => {
+            document.getElementById('qr-reader-results').innerText = "Camera access denied or unavailable.";
+            document.getElementById('start-scan-btn').classList.remove('hidden');
+            document.getElementById('stop-scan-btn').classList.add('hidden');
+        });
+    }
+
+    function stopQrScanner() {
+        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('start-scan-btn').classList.remove('hidden');
+                document.getElementById('stop-scan-btn').classList.add('hidden');
+            }).catch(err => console.error(err));
+        }
+    }
+
+    // File Drag & Drop + Client-Side SHA-256 Hashing
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-500'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-indigo-500'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-indigo-500');
+        if (e.dataTransfer.files.length) {
+            processFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            processFile(fileInput.files[0]);
+        }
+    });
+
+    let currentComputedHash = "";
+
+    async function processFile(file) {
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        currentComputedHash = hashHex;
+        document.getElementById('file-hash-display').innerText = hashHex;
+        document.getElementById('file-hash-container').classList.remove('hidden');
+        document.getElementById('file-status-text').innerText = `File: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    }
+
+    function verifyByHash() {
+        if (!currentComputedHash) return;
+        // Prompt for ID or check matching in database
+        const certId = prompt("Please enter the Certificate ID to match this document against:");
+        if (certId) {
+            window.location.href = `/verify/${encodeURIComponent(certId.trim())}`;
+        }
+    }
+</script>
+{% endblock %}

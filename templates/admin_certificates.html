@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}All Certificates - CertChain{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <div class="inline-flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <i class="fa-solid fa-folder-open"></i>
+                <span>Credential Repository</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white">Issued Certificates</h1>
+            <p class="text-xs text-slate-400 mt-1">Complete database of all certificates anchored on the Ethereum blockchain</p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <a href="{{ url_for('issue_certificate') }}" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition flex items-center">
+                <i class="fa-solid fa-plus-circle mr-2"></i> Issue New Certificate
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-6">
+        <form action="{{ url_for('admin_certificates') }}" method="GET" class="relative max-w-md">
+            <div class="relative flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm ml-1 mr-2.5"></i>
+                <input type="text" name="search" value="{{ search }}" placeholder="Filter by Student, ID, Course, or School..."
+                       class="w-full bg-transparent text-white placeholder-slate-500 text-xs focus:outline-none">
+                {% if search %}
+                <a href="{{ url_for('admin_certificates') }}" class="text-slate-400 hover:text-white text-xs mr-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </a>
+                {% endif %}
+                <button type="submit" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Main Table -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+        {% if certificates %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="uppercase bg-slate-800/80 text-slate-400 border-b border-slate-700/80">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">Certificate ID</th>
+                        <th scope="col" class="px-6 py-4">Student</th>
+                        <th scope="col" class="px-6 py-4">Course / Qualification</th>
+                        <th scope="col" class="px-6 py-4">Institution</th>
+                        <th scope="col" class="px-6 py-4">Issue Date</th>
+                        <th scope="col" class="px-6 py-4">Status</th>
+                        <th scope="col" class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                    {% for cert in certificates %}
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-6 py-4 font-mono font-bold text-indigo-400">
+                            {{ cert.certificate_id }}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-white">
+                            {{ cert.student_name }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-300">
+                            {{ cert.course }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-400">
+                            {{ cert.institution }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 font-mono">
+                            {{ cert.issue_date }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span> On-Chain
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <a href="{{ url_for('view_certificate', cert_id=cert.certificate_id) }}" class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 text-xs font-medium border border-indigo-500/30 transition">
+                                <i class="fa-solid fa-eye mr-1"></i> View
+                            </a>
+                            <a href="{{ url_for('verify_result', cert_id=cert.certificate_id) }}" class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 text-xs font-medium border border-emerald-500/30 transition">
+                                <i class="fa-solid fa-shield-check mr-1"></i> Verify
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="py-16 text-center text-slate-500 text-sm">
+            <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <p>No certificates found matching your query.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
