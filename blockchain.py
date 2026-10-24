@@ -5,6 +5,12 @@ import time
 from web3 import Web3
 from solcx import compile_standard, install_solc, set_solc_version
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 SOLC_VERSION = "0.8.20"
 CONTRACT_PATH = os.path.join(os.path.dirname(__file__), "contracts", "CertificateVerification.sol")
 COMPILED_CONTRACT_PATH = os.path.join(os.path.dirname(__file__), "compiled_contract.json")
@@ -166,10 +172,14 @@ class BlockchainManager:
         if env_addr:
             try:
                 checksum_addr = Web3.to_checksum_address(env_addr.strip())
-                self.contract_address = checksum_addr
-                self.contract = self.w3.eth.contract(address=self.contract_address, abi=self.abi)
-                print(f"Connected to pre-deployed contract at {self.contract_address} (via CONTRACT_ADDRESS)")
-                return
+                code = self.w3.eth.get_code(checksum_addr)
+                if code and code != b'\x00' and len(code) > 2:
+                    self.contract_address = checksum_addr
+                    self.contract = self.w3.eth.contract(address=self.contract_address, abi=self.abi)
+                    print(f"Connected to pre-deployed contract at {self.contract_address} (via CONTRACT_ADDRESS)")
+                    return
+                else:
+                    print(f"Notice: No deployed bytecode found at CONTRACT_ADDRESS {checksum_addr} on this node. Deploying fresh instance...")
             except Exception as e:
                 print(f"Warning: Invalid CONTRACT_ADDRESS '{env_addr}': {e}")
 
@@ -201,10 +211,11 @@ class BlockchainManager:
             tx_data = contract_factory.constructor().build_transaction({
                 "from": self.default_account,
                 "nonce": nonce,
-                "gasPrice": self.w3.eth.gas_price
+                "gasPrice": self.w3.eth.gas_price,
+                "chainId": self.w3.eth.chain_id
             })
-            signed_tx = self.w3.eth.account.sign_transaction(tx_data, self.private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            raw_tx = getattr(signed_tx, "raw_transaction", getattr(signed_tx, "rawTransaction", None))
+            tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
         else:
             tx_hash = contract_factory.constructor().transact({
                 "from": self.default_account
@@ -268,10 +279,11 @@ class BlockchainManager:
                 ).build_transaction({
                     "from": self.default_account,
                     "nonce": nonce,
-                    "gasPrice": self.w3.eth.gas_price
+                    "gasPrice": self.w3.eth.gas_price,
+                    "chainId": self.w3.eth.chain_id
                 })
-                signed_tx = self.w3.eth.account.sign_transaction(tx_data, self.private_key)
-                tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+                raw_tx = getattr(signed_tx, "raw_transaction", getattr(signed_tx, "rawTransaction", None))
+                tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
             else:
                 tx_hash = self.contract.functions.issueCertificate(
                     str(cert_id),
@@ -310,6 +322,7 @@ class BlockchainManager:
                 return {
                     "exists": False,
                     "certificate_id": cert_id,
+                    "contract_address": self.contract_address,
                     "error": "Certificate not found on the blockchain."
                 }
 
@@ -327,6 +340,7 @@ class BlockchainManager:
             return {
                 "exists": False,
                 "certificate_id": cert_id,
+                "contract_address": self.contract_address,
                 "error": f"Error querying blockchain: {str(e)}"
             }
 

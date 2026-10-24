@@ -152,7 +152,7 @@
             </div>
             <div>
                 <span class="font-bold text-slate-800">SMART CONTRACT:</span>
-                <span>{{ on_chain.contract_address[:10] }}...{{ on_chain.contract_address[-8:] if on_chain.contract_address else '' }}</span>
+                <span>{{ on_chain.contract_address[:10] if on_chain and on_chain.contract_address else 'On-Chain Ledger' }}...{{ on_chain.contract_address[-8:] if on_chain and on_chain.contract_address else '' }}</span>
             </div>
             <div class="flex items-center space-x-1 text-emerald-700 font-bold font-sans">
                 <i class="fa-solid fa-shield-halved text-xs"></i>
