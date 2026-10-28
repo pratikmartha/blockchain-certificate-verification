@@ -2,7 +2,7 @@
     "address": "0xF2E246BB76DF876Cef8b38ae84130F4F55De395b",
     "tx_hash": "6ef718448b0f11c305a22b3ac9eef611667d040e8cc8060dd2af9e72897fb9ef",
     "block_number": 1,
-    "deployed_at": 1793183754.0927858,
+    "deployed_at": 1793186343.919272,
     "provider": "Py-EVM Local Node",
     "deployer": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
 }

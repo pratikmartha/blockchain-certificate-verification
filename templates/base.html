@@ -105,7 +105,7 @@
                 <div class="flex items-center space-x-3">
                     <!-- MetaMask Connect Button & Details Modal -->
                     <div class="relative">
-                        <button id="metamask-connect-btn" type="button" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 hover:text-white text-xs font-medium flex items-center transition shadow-md shadow-amber-500/10 cursor-pointer">
+                        <button id="metamask-connect-btn" type="button" onclick="if(window.CertChainMetaMask) window.CertChainMetaMask.connect();" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 hover:text-white text-xs font-medium flex items-center transition shadow-md shadow-amber-500/10 cursor-pointer">
                             <span class="mr-1.5 text-base leading-none">🦊</span>
                             <span class="font-medium text-xs">Connect MetaMask</span>
                         </button>
@@ -259,7 +259,7 @@
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/metamask.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metamask.js') }}?v=2"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

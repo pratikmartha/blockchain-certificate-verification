@@ -24,8 +24,35 @@
         isConnected: false
     };
 
+    function notify(message, type = 'info') {
+        if (typeof window.showToast === 'function') {
+            window.showToast(message);
+        } else if (typeof showToast === 'function') {
+            showToast(message);
+        } else {
+            console.log(`[CertChain Notice] ${message}`);
+        }
+    }
+
+    /**
+     * Resolves the MetaMask provider even if multiple web3 wallet extensions are installed
+     */
+    function getMetaMaskProvider() {
+        if (typeof window.ethereum === 'undefined') {
+            return null;
+        }
+
+        // If multiple extensions are installed (e.g. Coinbase, Phantom + MetaMask)
+        if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
+            const metaMask = window.ethereum.providers.find(p => p.isMetaMask);
+            if (metaMask) return metaMask;
+        }
+
+        return window.ethereum;
+    }
+
     function isMetaMaskInstalled() {
-        return typeof window.ethereum !== 'undefined' && Boolean(window.ethereum.isMetaMask);
+        return Boolean(getMetaMaskProvider());
     }
 
     function formatAddress(addr) {
@@ -35,8 +62,11 @@
 
     function getNetworkName(chainId) {
         if (!chainId) return 'Unknown Network';
-        const net = NETWORKS[chainId.toLowerCase()];
-        return net ? net.name : `Chain ${parseInt(chainId, 16) || chainId}`;
+        const hex = chainId.toLowerCase();
+        const net = NETWORKS[hex];
+        if (net) return net.name;
+        const dec = parseInt(chainId, 16);
+        return isNaN(dec) ? chainId : `Chain ID: ${dec}`;
     }
 
     function getExplorerUrl(chainId, address) {
@@ -48,10 +78,10 @@
         return `https://etherscan.io/address/${address}`;
     }
 
-    async function fetchAccountBalance(account) {
+    async function fetchAccountBalance(provider, account) {
         try {
-            if (!window.ethereum || !account) return '0.0000';
-            const balHex = await window.ethereum.request({
+            if (!provider || !account) return '0.0000';
+            const balHex = await provider.request({
                 method: 'eth_getBalance',
                 params: [account, 'latest']
             });
@@ -59,18 +89,19 @@
             const eth = Number(wei) / 1e18;
             return eth.toFixed(4);
         } catch (err) {
-            console.warn('Failed to fetch balance:', err);
+            console.warn('[CertChain] Failed to fetch balance:', err);
             return '0.0000';
         }
     }
 
     async function updateState(account, chainId) {
+        const provider = getMetaMaskProvider();
         state.account = account || null;
         state.chainId = chainId || null;
         state.isConnected = Boolean(account);
 
-        if (state.isConnected) {
-            state.balance = await fetchAccountBalance(account);
+        if (state.isConnected && provider) {
+            state.balance = await fetchAccountBalance(provider, account);
             localStorage.setItem('certchain_metamask_connected', 'true');
         } else {
             state.balance = '0.0000';
@@ -82,76 +113,94 @@
     }
 
     async function connectWallet() {
-        if (!isMetaMaskInstalled()) {
+        console.log('[CertChain] Requesting MetaMask wallet connection...');
+        const provider = getMetaMaskProvider();
+
+        if (!provider) {
+            console.warn('[CertChain] No MetaMask provider detected in browser.');
             showInstallModal();
             return null;
         }
 
         try {
-            const accounts = await window.ethereum.request({
+            // Request accounts from MetaMask
+            const accounts = await provider.request({
                 method: 'eth_requestAccounts'
             });
 
-            const chainId = await window.ethereum.request({
+            const chainId = await provider.request({
                 method: 'eth_chainId'
             });
 
+            console.log('[CertChain] Connected accounts:', accounts, 'chainId:', chainId);
+
             if (accounts && accounts.length > 0) {
                 await updateState(accounts[0], chainId);
-                showToast(`MetaMask Connected: ${formatAddress(accounts[0])}`);
+                notify(`MetaMask Connected: ${formatAddress(accounts[0])}`);
                 return accounts[0];
             }
         } catch (error) {
-            console.error('MetaMask connection error:', error);
+            console.error('[CertChain] MetaMask connection error:', error);
             if (error.code === 4001) {
-                showToast('Connection request was rejected in MetaMask.', 'error');
+                notify('MetaMask connection request rejected by user.', 'error');
+            } else if (error.code === -32002) {
+                notify('MetaMask request already pending. Please click the MetaMask extension icon in your browser to approve.', 'warning');
             } else {
-                showToast(`MetaMask error: ${error.message || 'Failed to connect'}`, 'error');
+                notify(`MetaMask error: ${error.message || 'Failed to connect'}`, 'error');
             }
         }
         return null;
     }
 
     async function disconnectWallet() {
+        console.log('[CertChain] Disconnecting MetaMask...');
         await updateState(null, null);
-        showToast('MetaMask disconnected from CertChain.');
+        notify('MetaMask disconnected from CertChain.');
         closeWalletModal();
     }
 
     async function checkExistingConnection() {
-        if (!isMetaMaskInstalled()) return;
+        const provider = getMetaMaskProvider();
+        if (!provider) return;
 
         const shouldReconnect = localStorage.getItem('certchain_metamask_connected') === 'true';
 
         try {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const accounts = await provider.request({ method: 'eth_accounts' });
+            const chainId = await provider.request({ method: 'eth_chainId' });
 
             if (accounts && accounts.length > 0 && shouldReconnect) {
+                console.log('[CertChain] Restored existing MetaMask session for:', accounts[0]);
                 await updateState(accounts[0], chainId);
+            } else {
+                renderUI();
             }
         } catch (err) {
-            console.warn('Silent reconnect check failed:', err);
+            console.warn('[CertChain] Silent reconnect check failed:', err);
+            renderUI();
         }
     }
 
     function setupEventListeners() {
-        if (!isMetaMaskInstalled()) return;
+        const provider = getMetaMaskProvider();
+        if (!provider) return;
 
-        window.ethereum.on('accountsChanged', async (accounts) => {
-            if (accounts.length === 0) {
+        provider.on('accountsChanged', async (accounts) => {
+            console.log('[CertChain] Accounts changed event:', accounts);
+            if (!accounts || accounts.length === 0) {
                 await updateState(null, null);
             } else {
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const chainId = await provider.request({ method: 'eth_chainId' });
                 await updateState(accounts[0], chainId);
-                showToast(`Switched account to ${formatAddress(accounts[0])}`);
+                notify(`Active account changed: ${formatAddress(accounts[0])}`);
             }
         });
 
-        window.ethereum.on('chainChanged', async (chainId) => {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        provider.on('chainChanged', async (chainId) => {
+            console.log('[CertChain] Chain changed event:', chainId);
+            const accounts = await provider.request({ method: 'eth_accounts' });
             await updateState(accounts[0] || null, chainId);
-            showToast(`Switched network to ${getNetworkName(chainId)}`);
+            notify(`Network changed to ${getNetworkName(chainId)}`);
         });
     }
 
@@ -200,7 +249,6 @@
 
         // 3. Issue Certificate Page Banner / Gating
         const issueGate = document.getElementById('issue-metamask-banner');
-        const issueSubmitBtn = document.getElementById('submitBtn');
         if (issueGate) {
             if (state.isConnected) {
                 issueGate.innerHTML = `
@@ -224,9 +272,6 @@
                         </div>
                     </div>
                 `;
-                if (issueSubmitBtn) {
-                    issueSubmitBtn.classList.remove('opacity-60');
-                }
             } else {
                 issueGate.innerHTML = `
                     <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/40 border border-amber-500/40 text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
@@ -244,7 +289,7 @@
                                 </p>
                             </div>
                         </div>
-                        <button type="button" onclick="window.CertChainMetaMask.connect()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center shrink-0">
+                        <button type="button" onclick="window.CertChainMetaMask.connect()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center shrink-0 cursor-pointer">
                             <span class="mr-2 text-base">🦊</span>
                             <span>Connect MetaMask</span>
                         </button>
@@ -274,7 +319,7 @@
                                 </div>
                                 <div class="font-mono text-sm font-bold text-white mt-0.5 flex items-center space-x-2">
                                     <span>${state.account}</span>
-                                    <button onclick="copyToClipboard('${state.account}', 'Wallet address copied!')" class="text-slate-400 hover:text-indigo-400 transition" title="Copy Address">
+                                    <button type="button" onclick="copyToClipboard('${state.account}', 'Wallet address copied!')" class="text-slate-400 hover:text-indigo-400 transition" title="Copy Address">
                                         <i class="fa-regular fa-copy text-xs"></i>
                                     </button>
                                 </div>
@@ -287,7 +332,7 @@
                             <a href="${getExplorerUrl(state.chainId, state.account)}" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center">
                                 <i class="fa-solid fa-arrow-up-right-from-square mr-1.5 text-[10px]"></i> Explorer
                             </a>
-                            <button onclick="window.CertChainMetaMask.disconnect()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-medium transition">
+                            <button type="button" onclick="window.CertChainMetaMask.disconnect()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-medium transition">
                                 Disconnect
                             </button>
                         </div>
@@ -309,7 +354,7 @@
                                 </p>
                             </div>
                         </div>
-                        <button type="button" onclick="window.CertChainMetaMask.connect()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center shrink-0">
+                        <button type="button" onclick="window.CertChainMetaMask.connect()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center shrink-0 cursor-pointer">
                             <span class="mr-2 text-base">🦊</span>
                             <span>Connect MetaMask</span>
                         </button>
@@ -330,7 +375,7 @@
                             <span class="font-mono text-emerald-400 font-semibold">${formatAddress(state.account)}</span>
                             <span class="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono">${getNetworkName(state.chainId)}</span>
                         </div>
-                        <button onclick="window.CertChainMetaMask.disconnect()" class="text-slate-400 hover:text-rose-400 transition text-[11px]">
+                        <button type="button" onclick="window.CertChainMetaMask.disconnect()" class="text-slate-400 hover:text-rose-400 transition text-[11px]">
                             Disconnect
                         </button>
                     </div>
@@ -342,7 +387,7 @@
                             <span class="text-base">🦊</span>
                             <span class="text-slate-400">Optional: Connect MetaMask to sign verification proofs and view on-chain history</span>
                         </div>
-                        <button onclick="window.CertChainMetaMask.connect()" class="text-amber-400 hover:text-amber-300 font-semibold text-xs transition flex items-center">
+                        <button type="button" onclick="window.CertChainMetaMask.connect()" class="text-amber-400 hover:text-amber-300 font-semibold text-xs transition flex items-center cursor-pointer">
                             <span>Connect</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
                         </button>
                     </div>
@@ -386,7 +431,7 @@
         modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in';
         modal.innerHTML = `
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
-                <button onclick="this.closest('#metamask-install-modal').remove()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+                <button type="button" onclick="this.closest('#metamask-install-modal').remove()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
                 <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-4xl mx-auto mb-4">
@@ -394,16 +439,16 @@
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">MetaMask Not Detected</h3>
                 <p class="text-xs text-slate-300 leading-relaxed mb-6">
-                    To connect your Ethereum wallet and interact with the CertChain smart contract, you need the MetaMask browser extension.
+                    To connect your Ethereum wallet to CertChain, please install the MetaMask browser extension or enable it in your browser.
                 </p>
                 <div class="space-y-3">
                     <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer"
                        class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center justify-center">
-                        <i class="fa-solid fa-download mr-2"></i> Download & Install MetaMask
+                        <i class="fa-solid fa-download mr-2"></i> Download MetaMask Extension
                     </a>
-                    <button onclick="this.closest('#metamask-install-modal').remove()"
+                    <button type="button" onclick="this.closest('#metamask-install-modal').remove()"
                             class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
-                        Close
+                        Cancel
                     </button>
                 </div>
             </div>
@@ -411,24 +456,7 @@
         document.body.appendChild(modal);
     }
 
-    // Initialize on DOM load
-    document.addEventListener('DOMContentLoaded', () => {
-        checkExistingConnection();
-        setupEventListeners();
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const modal = document.getElementById('metamask-wallet-modal');
-            const navBtn = document.getElementById('metamask-connect-btn');
-            if (modal && !modal.classList.contains('hidden')) {
-                if (!modal.contains(e.target) && navBtn && !navBtn.contains(e.target)) {
-                    closeWalletModal();
-                }
-            }
-        });
-    });
-
-    // Expose Global Public API
+    // Expose Global Public API IMMEDIATELY
     window.CertChainMetaMask = {
         connect: connectWallet,
         disconnect: disconnectWallet,
@@ -450,4 +478,28 @@
             return false;
         }
     };
+
+    function init() {
+        console.log('[CertChain] Initializing MetaMask integration...');
+        renderUI();
+        checkExistingConnection();
+        setupEventListeners();
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('metamask-wallet-modal');
+            const navBtn = document.getElementById('metamask-connect-btn');
+            if (modal && !modal.classList.contains('hidden')) {
+                if (!modal.contains(e.target) && navBtn && !navBtn.contains(e.target)) {
+                    closeWalletModal();
+                }
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();

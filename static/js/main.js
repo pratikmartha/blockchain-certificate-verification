@@ -48,6 +48,7 @@ function showToast(message) {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+window.showToast = showToast;
 
 // Compute SHA-256 in browser using Web Crypto API
 async function calculateSha256(str) {
