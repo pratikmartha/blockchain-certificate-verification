@@ -214,6 +214,7 @@ class BlockchainManager:
                 "gasPrice": self.w3.eth.gas_price,
                 "chainId": self.w3.eth.chain_id
             })
+            signed_tx = self.w3.eth.account.sign_transaction(tx_data, private_key=self.private_key)
             raw_tx = getattr(signed_tx, "raw_transaction", getattr(signed_tx, "rawTransaction", None))
             tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
         else:
@@ -282,6 +283,7 @@ class BlockchainManager:
                     "gasPrice": self.w3.eth.gas_price,
                     "chainId": self.w3.eth.chain_id
                 })
+                signed_tx = self.w3.eth.account.sign_transaction(tx_data, private_key=self.private_key)
                 raw_tx = getattr(signed_tx, "raw_transaction", getattr(signed_tx, "rawTransaction", None))
                 tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
             else:

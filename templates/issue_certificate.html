@@ -18,7 +18,32 @@
 
     <!-- Main Card -->
     <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-10 backdrop-blur-xl shadow-2xl">
+        <!-- MetaMask Issuer Authentication Banner -->
+        <div id="issue-metamask-banner" class="mb-6">
+            <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/40 border border-amber-500/40 text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-11 h-11 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-400 text-2xl shrink-0">
+                        🦊
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white flex items-center">
+                            MetaMask Account Required to Issue Certificate
+                            <span class="ml-2 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] uppercase tracking-wider font-semibold">Web3 Gated</span>
+                        </h4>
+                        <p class="text-xs text-slate-300 mt-0.5">
+                            Connect your institution's MetaMask wallet to authenticate as the authorized issuer and anchor this credential into Ethereum.
+                        </p>
+                    </div>
+                </div>
+                <button type="button" onclick="window.CertChainMetaMask.connect()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center shrink-0">
+                    <span class="mr-2 text-base">🦊</span>
+                    <span>Connect MetaMask</span>
+                </button>
+            </div>
+        </div>
+
         <form action="{{ url_for('issue_certificate') }}" method="POST" id="issueForm" class="space-y-6">
+            <input type="hidden" id="issuer_wallet" name="issuer_wallet" value="">
             <!-- Row 1: Certificate ID & Auto-generator -->
             <div>
                 <div class="flex items-center justify-between mb-2">
@@ -171,8 +196,20 @@
         }
     });
 
-    // Form submit loading state
-    document.getElementById('issueForm').addEventListener('submit', function() {
+    // Form submit loading state & MetaMask verification
+    document.getElementById('issueForm').addEventListener('submit', async function(e) {
+        const walletState = window.CertChainMetaMask ? window.CertChainMetaMask.getState() : null;
+        if (walletState && !walletState.isConnected) {
+            e.preventDefault();
+            showToast('Please connect your MetaMask account first to sign and anchor this certificate.');
+            const acc = await window.CertChainMetaMask.connect();
+            if (acc) {
+                document.getElementById('issuer_wallet').value = acc;
+                showToast('Wallet linked! Click Issue Certificate again to proceed.');
+            }
+            return;
+        }
+
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
         btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mining Transaction on Ethereum...`;

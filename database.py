@@ -47,9 +47,16 @@ def init_db():
             contract_address TEXT NOT NULL,
             qr_code_path TEXT,
             status TEXT DEFAULT 'VERIFIED',
+            issuer_wallet TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
+
+    # Ensure issuer_wallet column exists for already created databases
+    try:
+        cursor.execute("ALTER TABLE certificates ADD COLUMN issuer_wallet TEXT;")
+    except sqlite3.OperationalError:
+        pass
 
     # Verification Audit Logs
     cursor.execute("""
@@ -393,8 +400,9 @@ def save_certificate(cert_data):
             INSERT INTO certificates (
                 certificate_id, student_name, student_email, course,
                 institution, issue_date, grade, certificate_hash,
-                tx_hash, block_number, contract_address, qr_code_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tx_hash, block_number, contract_address, qr_code_path,
+                issuer_wallet
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             cert_data["certificate_id"],
             cert_data["student_name"],
@@ -407,7 +415,8 @@ def save_certificate(cert_data):
             cert_data["tx_hash"],
             cert_data.get("block_number", 0),
             cert_data["contract_address"],
-            cert_data.get("qr_code_path", "")
+            cert_data.get("qr_code_path", ""),
+            cert_data.get("issuer_wallet", "")
         ))
         conn.commit()
         return True, "Certificate stored in database."

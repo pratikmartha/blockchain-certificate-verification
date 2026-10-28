@@ -25,6 +25,29 @@
         </div>
     </div>
 
+    <!-- MetaMask Account Status Card -->
+    <div id="dashboard-metamask-card" class="mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-amber-950/30 via-slate-900 to-indigo-950/30 border border-amber-500/30 shadow-lg">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl shrink-0">
+                    🦊
+                </div>
+                <div>
+                    <div class="text-xs uppercase font-bold text-amber-400 tracking-wider">
+                        Action Recommended: Connect Institution MetaMask Account
+                    </div>
+                    <p class="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                        Connect your institution's MetaMask wallet to issue tamper-proof certificates and sign on-chain transactions directly with your cryptographic key.
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="window.CertChainMetaMask.connect()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center shrink-0">
+                <span class="mr-2 text-base">🦊</span>
+                <span>Connect MetaMask</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Analytics Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">

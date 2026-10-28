@@ -23,6 +23,19 @@
 
     <!-- Verification Card with Tabs -->
     <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <!-- MetaMask Verifier Banner -->
+        <div id="verify-metamask-banner" class="mb-6">
+            <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-2.5">
+                    <span class="text-base">🦊</span>
+                    <span class="text-slate-400">Optional: Connect MetaMask to sign verification proofs and view on-chain history</span>
+                </div>
+                <button type="button" onclick="window.CertChainMetaMask.connect()" class="text-amber-400 hover:text-amber-300 font-semibold text-xs transition flex items-center">
+                    <span>Connect</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- Tabs Header -->
         <div class="flex border-b border-slate-800 mb-8 space-x-4">
             <button id="tab-btn-id" onclick="switchVerifyTab('id')"

@@ -154,6 +154,12 @@
                 <span class="font-bold text-slate-800">SMART CONTRACT:</span>
                 <span>{{ on_chain.contract_address[:10] if on_chain and on_chain.contract_address else 'On-Chain Ledger' }}...{{ on_chain.contract_address[-8:] if on_chain and on_chain.contract_address else '' }}</span>
             </div>
+            {% if cert and cert.issuer_wallet %}
+            <div>
+                <span class="font-bold text-slate-800">ISSUER SIGNER:</span>
+                <span>{{ cert.issuer_wallet[:10] }}...{{ cert.issuer_wallet[-6:] }}</span>
+            </div>
+            {% endif %}
             <div class="flex items-center space-x-1 text-emerald-700 font-bold font-sans">
                 <i class="fa-solid fa-shield-halved text-xs"></i>
                 <span>IMMUTABLE ETHEREUM RECORD</span>

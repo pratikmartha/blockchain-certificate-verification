@@ -116,6 +116,18 @@
                     </div>
                 </div>
             </div>
+
+            {% if db_cert and db_cert.issuer_wallet %}
+            <div class="pt-2">
+                <div class="text-slate-500 mb-1">Authorized Issuer Signer (MetaMask):</div>
+                <div class="text-amber-300 break-all select-all bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+                    <span>🦊 {{ db_cert.issuer_wallet }}</span>
+                    <button type="button" onclick="copyToClipboard('{{ db_cert.issuer_wallet }}', 'Issuer wallet address copied!')" class="text-slate-400 hover:text-white transition ml-2">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Demonstration Action -->

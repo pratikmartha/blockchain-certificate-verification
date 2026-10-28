@@ -345,6 +345,7 @@ def issue_certificate():
         institution = request.form.get("institution", "").strip() or session.get("admin_institution", "Authority")
         issue_date = request.form.get("issue_date", "").strip() or datetime.now().strftime("%Y-%m-%d")
         grade = request.form.get("grade", "Pass").strip()
+        issuer_wallet = request.form.get("issuer_wallet", "").strip()
 
         if not cert_id:
             cert_id = f"CERT-{int(time.time())}-{uuid.uuid4().hex[:6].upper()}"
@@ -392,7 +393,8 @@ def issue_certificate():
             "tx_hash": tx_result["tx_hash"],
             "block_number": tx_result["block_number"],
             "contract_address": tx_result["contract_address"],
-            "qr_code_path": qr_rel_path
+            "qr_code_path": qr_rel_path,
+            "issuer_wallet": issuer_wallet
         }
         db.save_certificate(db_record)
 

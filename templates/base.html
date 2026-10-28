@@ -101,8 +101,58 @@
                     </a>
                 </div>
 
-                <!-- Admin Auth CTAs -->
+                <!-- MetaMask & Admin Auth CTAs -->
                 <div class="flex items-center space-x-3">
+                    <!-- MetaMask Connect Button & Details Modal -->
+                    <div class="relative">
+                        <button id="metamask-connect-btn" type="button" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 hover:text-white text-xs font-medium flex items-center transition shadow-md shadow-amber-500/10 cursor-pointer">
+                            <span class="mr-1.5 text-base leading-none">🦊</span>
+                            <span class="font-medium text-xs">Connect MetaMask</span>
+                        </button>
+
+                        <!-- Wallet Info Dropdown Modal -->
+                        <div id="metamask-wallet-modal" class="hidden absolute right-0 mt-2 w-80 rounded-2xl bg-slate-900 border border-slate-700/80 shadow-2xl p-5 z-50 backdrop-blur-xl animate-fade-in">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xl">🦊</span>
+                                    <span class="text-xs font-bold uppercase tracking-wider text-white">MetaMask Account</span>
+                                </div>
+                                <button type="button" onclick="window.CertChainMetaMask.closeWalletModal()" class="text-slate-400 hover:text-white text-xs">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            <div class="py-3 space-y-3">
+                                <div>
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Account Address</span>
+                                    <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 mt-1">
+                                        <span id="metamask-modal-account" class="font-mono text-xs text-white truncate max-w-[200px]"></span>
+                                        <button type="button" onclick="copyToClipboard(document.getElementById('metamask-modal-account').textContent, 'Wallet address copied!')" class="text-indigo-400 hover:text-indigo-300 ml-2" title="Copy Address">
+                                            <i class="fa-regular fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Network</span>
+                                        <span id="metamask-modal-network" class="text-emerald-400 font-medium truncate block mt-0.5"></span>
+                                    </div>
+                                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Balance</span>
+                                        <span id="metamask-modal-balance" class="text-white font-mono font-semibold truncate block mt-0.5">0.00 ETH</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                                <a id="metamask-modal-explorer" href="#" target="_blank" class="text-xs text-indigo-400 hover:underline flex items-center">
+                                    <i class="fa-solid fa-arrow-up-right-from-square mr-1 text-[10px]"></i> View Explorer
+                                </a>
+                                <button type="button" onclick="window.CertChainMetaMask.disconnect()" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs transition">
+                                    Disconnect
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     {% if session.get('admin_id') %}
                         <a href="{{ url_for('admin_dashboard') }}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-600/30 text-sm font-medium flex items-center transition">
                             <i class="fa-solid fa-gauge-high mr-2 text-indigo-400"></i> Dashboard
@@ -209,6 +259,7 @@
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metamask.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
